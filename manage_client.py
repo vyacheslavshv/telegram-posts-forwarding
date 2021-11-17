@@ -1,4 +1,5 @@
 import settings as stg
+import re
 
 from tables import ClientUser, Transfer
 from telethon import TelegramClient
@@ -9,13 +10,33 @@ class ManageClient:
     def __init__(self, event):
         self.event = event
         self.chat_id = event.chat_id
+        self.entities = event.message.entities
         try:
             self.text = self.event.raw_text
         except AttributeError:
             self.text = None
 
     async def message(self):
-        await self.forward_message()
+        if await self.check_message():
+            await self.forward_message()
+
+    async def check_message(self):
+        for word in stg.banned_words:
+            if word in self.text:
+                stg.logger.info(f"[-] Banned word '{word}' found, skipping it.")
+                return False
+
+        private_chat_link = re.findall(r".*/joinchat/\w+", self.text)
+        if private_chat_link:
+            stg.logger.info("[-] Private join chat link found, skipping it.")
+            return False
+
+        telegram_links = re.findall(r"h?t?t?p?s?:?/?/?[tT]\.[mM][eE]/\w+", self.text)
+        if telegram_links:
+            for telegram_link in telegram_links:
+                if telegram_link:
+                    self.text = self.text.replace(telegram_link, stg.OUR_LINK)
+        return True
 
     async def forward_message(self):
         async for transfer_db in Transfer.filter(channel_from_id=self.chat_id, is_working=True).all():
