@@ -47,6 +47,8 @@ class ManageBot:
             return
 
     async def callback_query(self):
+        if not await self.check_authorization():
+            return
         try:
             data = self.event.data.decode("utf-8").split(':')
             if len(data) > 1:
@@ -59,12 +61,10 @@ class ManageBot:
             await self.event.answer()
 
     async def private_message(self):
-        if not (self.user_db.is_editor or self.user_db.is_admin):
-            await self.respond(msg.only_for_administrators)
+        if not await self.check_authorization():
             return
 
         if self.user_db.is_admin:
-
             if self.text == '/login':
                 await self.respond(msg.enter_phone_number)
                 self.user_db.flow = 'phone_number_request'
@@ -361,6 +361,12 @@ class ManageBot:
 
         if channel_from_id == channel_to_id:
             await respond('Error! It cannot be the same channel. Enter another, correct channel:')
+            return False
+        return True
+
+    async def check_authorization(self):
+        if not (self.user_db.is_editor or self.user_db.is_admin):
+            await self.respond(msg.only_for_administrators)
             return False
         return True
 
