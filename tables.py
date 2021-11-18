@@ -43,7 +43,7 @@ class Channel(Model):
 
     id = fields.BigIntField(pk=True)
     title = fields.TextField()
-    username = fields.TextField()
+    username = fields.TextField(null=True)
 
     transfers: fields.ReverseRelation["Transfer"]
 

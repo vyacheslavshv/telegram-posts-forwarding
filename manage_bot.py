@@ -7,10 +7,13 @@ import buttons as btn
 from tables import User, Category, Transfer, Channel
 
 from telethon.errors import \
-    PhoneCodeExpiredError, SessionPasswordNeededError, PasswordHashInvalidError, PhoneCodeInvalidError
+    PhoneCodeExpiredError, SessionPasswordNeededError, PasswordHashInvalidError, \
+    PhoneCodeInvalidError, BotMethodInvalidError, UserAlreadyParticipantError
 from telethon.utils import get_peer_id
 from telethon.tl import types
 from telethon.tl.custom import Button
+from telethon.tl.functions.channels import JoinChannelRequest
+from telethon.tl.functions.messages import ImportChatInviteRequest
 from copy import deepcopy
 
 
@@ -400,14 +403,34 @@ class ManageBot:
         return
 
     async def get_channel_entity(self, data=str()):
+        button_cancel = [[Button.inline('« Cancel', data)]]
         try:
-            channel_ent = await stg.client_bot.get_entity(self.text)
+            check_link = re.findall(msg.link_join_chat, self.text)
+            if check_link:
+                try:
+                    await stg.client_user(ImportChatInviteRequest(check_link[0]))
+                except UserAlreadyParticipantError:
+                    pass
+                except Exception:
+                    stg.logger.exception('ImportChatInviteRequest')
+                    await self.respond(msg.you_cannot_join_private_channel, buttons=button_cancel)
+                    return False
+
+            channel_ent = await stg.client_user.get_entity(self.text)
             assert isinstance(channel_ent, types.Channel)
-            return channel_ent
+
+            if not check_link:
+                try:
+                    await stg.client_user(JoinChannelRequest(channel_ent))
+                except Exception:
+                    stg.logger.exception('JoinChannelRequest')
+
         except Exception:
-            await self.respond(
-                msg.enter_correct_channel_link, buttons=[[Button.inline('« Cancel', data)]])
+            stg.logger.exception('get_channel_entity')
+            await self.respond(msg.enter_correct_channel_link, buttons=button_cancel)
             return False
+
+        return channel_ent
 
     async def edit_transfer_from(self, transfer_id):
         transfer_db = await Transfer.filter(id=transfer_id).first()

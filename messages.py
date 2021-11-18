@@ -1,3 +1,5 @@
+import re
+
 enter_phone_number = """
 Reply only your phone number including area code and country code. No spaces, periods or dashes. Include a leading "+". Like this: +17771112222
 """
@@ -75,3 +77,12 @@ For example:
 - t.me/channel
 - @channel
 """
+
+you_cannot_join_private_channel = """
+You cannot join a private channel. Find out what the reason is (maybe you are banned or the link is out of date). 
+
+You must join to add or change a channel. Enter the link again or enter another channel link:
+"""
+
+
+link_join_chat = re.compile(r'joinchat\/(\w+)')
