@@ -9,8 +9,7 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 TOKEN_BOT = '2119379246:AAH65mUK8cjLj_ggscapWqGRiigpSdBjANQ'
-# TOKEN_BOT = '1790953746:AAH57QwCGWgw3Ml3Mz2FXjktf5FKBsqcTSk'
-# USERNAME_BOT = '@UpworkTestingBot'
+# TOKEN_BOT = '1790953746:AAH57QwCGWgw3Ml3Mz2FXjktf5FKBsqcTSk' #Upwork Testing Bot
 
 TG_API_ID = 1910144
 TG_API_HASH = "275a53e95d045f6d980c222640f36add"

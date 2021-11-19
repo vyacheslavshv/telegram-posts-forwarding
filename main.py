@@ -35,7 +35,7 @@ class BotEventHelper:
 
     def __init__(self, event):
         # print('Bot:', event.stringify())
-        stg.logger.info(event)
+        # stg.logger.info(event)
         self.manage = ManageBot(event)
 
     async def runner(self, func):
@@ -50,7 +50,7 @@ class ClientEventHelper:
 
     def __init__(self, event):
         # print('Client:', event.stringify())
-        stg.logger.info(event)
+        # stg.logger.info(event)
         self.manage = ManageClient(event)
 
     async def runner(self, func):

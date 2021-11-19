@@ -7,8 +7,10 @@ import buttons as btn
 from tables import User, Category, Transfer, Channel
 
 from telethon.errors import \
-    PhoneCodeExpiredError, SessionPasswordNeededError, PasswordHashInvalidError, \
-    PhoneCodeInvalidError, BotMethodInvalidError, UserAlreadyParticipantError
+    PhoneCodeExpiredError, PasswordHashInvalidError, \
+    PhoneCodeInvalidError, UserAlreadyParticipantError, FloodWaitError, \
+    ChannelsTooMuchError, InviteHashEmptyError, InviteHashExpiredError, InviteHashInvalidError, \
+    SessionPasswordNeededError, UsersTooMuchError, ChannelInvalidError, ChannelPrivateError
 from telethon.utils import get_peer_id
 from telethon.tl import types
 from telethon.tl.custom import Button
@@ -411,20 +413,52 @@ class ManageBot:
                     await stg.client_user(ImportChatInviteRequest(check_link[0]))
                 except UserAlreadyParticipantError:
                     pass
-                except Exception:
-                    stg.logger.exception('ImportChatInviteRequest')
-                    await self.respond(msg.you_cannot_join_private_channel, buttons=button_cancel)
-                    return False
 
             channel_ent = await stg.client_user.get_entity(self.text)
             assert isinstance(channel_ent, types.Channel)
 
             if not check_link:
-                try:
-                    await stg.client_user(JoinChannelRequest(channel_ent))
-                except Exception:
-                    stg.logger.exception('JoinChannelRequest')
+                await stg.client_user(JoinChannelRequest(channel_ent))
 
+        except FloodWaitError as e:
+            await self.respond(
+                f'Add channel too often. Wait {e.seconds} second(s) and try again.', buttons=button_cancel)
+            return False
+        except ChannelsTooMuchError:
+            await self.respond(f'You have joined too many channels/supergroups.', buttons=button_cancel)
+            return False
+        except ChannelInvalidError:
+            await self.respond(
+                f'Invalid channel object. Make sure to pass the right types, '
+                f'for instance making sure that the request is designed for channels '
+                f'or otherwise look for a different one more suited.',
+                buttons=button_cancel)
+            return False
+        except ChannelPrivateError:
+            await self.respond(
+                f'The channel specified is private and you lack permission to access it. '
+                f'Another reason may be that you were banned from it.',
+                buttons=button_cancel)
+            return False
+        except InviteHashEmptyError:
+            await self.respond(f'The invite hash is empty.', buttons=button_cancel)
+            return False
+        except InviteHashExpiredError:
+            await self.respond(
+                f'The chat you tried to join has expired and is not valid anymore.', buttons=button_cancel)
+            return False
+        except InviteHashInvalidError:
+            await self.respond(f'The invite hash is invalid.', buttons=button_cancel)
+            return False
+        except SessionPasswordNeededError:
+            await self.respond(
+                f'Two-steps verification is enabled and a password is required.', buttons=button_cancel)
+            return False
+        except UsersTooMuchError:
+            await self.respond(
+                f'The maximum number of users has been exceeded (to create a chat, for example).',
+                buttons=button_cancel)
+            return False
         except Exception:
             stg.logger.exception('get_channel_entity')
             await self.respond(msg.enter_correct_channel_link, buttons=button_cancel)
