@@ -8,8 +8,8 @@ formatter = logging.Formatter(fmt='%(asctime)s : %(levelname)s : %(message)s', d
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-TOKEN_BOT = '2119379246:AAH65mUK8cjLj_ggscapWqGRiigpSdBjANQ'
-#  TOKEN_BOT = '1790953746:AAH57QwCGWgw3Ml3Mz2FXjktf5FKBsqcTSk'
+# TOKEN_BOT = '2119379246:AAH65mUK8cjLj_ggscapWqGRiigpSdBjANQ'
+TOKEN_BOT = '1790953746:AAH57QwCGWgw3Ml3Mz2FXjktf5FKBsqcTSk'
 # USERNAME_BOT = '@UpworkTestingBot'
 
 TG_API_ID = 1910144
@@ -26,3 +26,4 @@ banned_words = {
 }
 
 OUR_LINK = "http://t.me/SratimmBot"
+OUR_TAG = "@SratimmBot"
