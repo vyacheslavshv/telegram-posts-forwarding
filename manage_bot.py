@@ -332,26 +332,44 @@ class ManageBot:
         else:
             await self.respond('Categories', buttons=buttons)
 
-    async def category(self, category_id, edit=True, message=None):
+    async def category(self, category_id, _page=0, edit=True, message=None):
         await self.reset_flow()
 
-        category_db = await Category.filter(id=category_id).first()
+        page = int(_page)
+        index_by_page = page * stg.TRANSFERS_PER_PAGE
+        transfers = await Transfer.filter(
+            category_id=int(category_id)).prefetch_related('channel_from', 'channel_to').all()
+
+        transfers_number = len(transfers[index_by_page:])
+        transfers = transfers[index_by_page:index_by_page + stg.TRANSFERS_PER_PAGE]
+        current_transfers_number = len(transfers)
 
         buttons = list()
-        async for transfer_db in Transfer.filter(category_id=int(category_id)).all():
-            await transfer_db.fetch_related('channel_from', 'channel_to')
+        for row in range(current_transfers_number):
+            transfer = transfers[row]
             buttons.append(
-                [Button.inline(f'{transfer_db.channel_from.title}', f'edit_transfer_from:{transfer_db.id}'),
-                 Button.inline(f'{transfer_db.channel_to.title}', f'edit_transfer_to:{transfer_db.id}'),
-                 Button.inline('🟢' if transfer_db.is_working else '🔴', f'edit_transfer_working:{transfer_db.id}')]
-            )
+                [Button.inline(f'{transfer.channel_from.title}', f'edit_transfer_from:{transfer.id}:{page}'),
+                 Button.inline(f'{transfer.channel_to.title}', f'edit_transfer_to:{transfer.id}:{page}'),
+                 Button.inline('🟢' if transfer.is_working else '🔴', f'edit_transfer_working:{transfer.id}')])
+
+        back = False
+        current_page_button = Button.inline(f'{page + 1}', '')
+
+        if page > 0:
+            buttons.append([Button.inline(f'« {page}', f'category:{category_id}:{page - 1}'), current_page_button])
+            back = True
+
+        if transfers_number > stg.TRANSFERS_PER_PAGE:
+            button = Button.inline(f'{page + 2} »', f'category:{category_id}:{page + 1}')
+            buttons[-1].append(button) if back else buttons.append([button]) \
+                if page != 0 else buttons.append([current_page_button, button])
+
         buttons.append([Button.inline('« Back', 'categories_by_topics')])
 
+        category_db = await Category.filter(id=category_id).first()
         text = f'{category_db.name}' + f' | {message}' if message else f'{category_db.name}'
-        if edit:
-            await self.event.edit(text, buttons=buttons)
-        else:
-            await self.respond(text, buttons=buttons)
+
+        await self.event.edit(text, buttons=buttons) if edit else await self.respond(text, buttons=buttons)
 
     async def check_transfer_channels(self, channel_from_id, channel_to_id, data=str()):
         async def respond(text):

@@ -26,3 +26,5 @@ banned_words = {
 
 OUR_LINK = "http://t.me/GlobalNewsRobot"
 OUR_TAG = "@GlobalNewsRobot"
+
+TRANSFERS_PER_PAGE = 10
