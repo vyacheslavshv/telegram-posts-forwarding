@@ -17,6 +17,7 @@ from telethon.tl.custom import Button
 from telethon.tl.functions.channels import JoinChannelRequest
 from telethon.tl.functions.messages import ImportChatInviteRequest
 from copy import deepcopy
+from tortoise.query_utils import Q
 
 
 class ManageBot:
@@ -258,23 +259,96 @@ class ManageBot:
                     message='You have successfully changed your transfer!')
                 return
 
+            if 'add_admin' in self.user_db.flow:
+                buttons = [[Button.inline('« Back', 'admins_list')]]
+                flow_args = self.user_db.flow.split(':')
+                admin = True if len(flow_args) > 1 else False
+
+                try:
+                    user_ent = await stg.client_bot.get_entity(self.text)
+                    assert isinstance(user_ent, types.User)
+                except FloodWaitError as e:
+                    await self.respond(f'Error! Wait {e.seconds} second(s) and try again.', buttons=buttons)
+                    return False
+                except Exception:
+                    stg.logger.exception('add_admin')
+                    await self.respond('Error! Enter the correct user link:', buttons=buttons)
+                    return False
+
+                user_db = await self.check_new_user(user_ent)
+                if admin:
+                    user_db.is_admin = True
+                else:
+                    user_db.is_editor = True
+                await user_db.save()
+
+                text = 'You have successfully added the user as ' + ('administrator.' if admin else 'editor.')
+                await self.admins_list(text, edit=False)
+                return
+
         await self.menu(edit=False)
+
+    async def admins_list(self, text=str(), edit=True):
+        await self.reset_flow()
+
+        admins = await User.filter(Q(is_admin=True) | Q(is_editor=True)).all()
+
+        buttons = list()
+        for admin in admins:
+            fullname = admin.first_name + (f' {admin.last_name}' if admin.last_name else '') + \
+                       (' (admin)' if admin.is_admin else ' (editor)')
+            button = Button.url(fullname, f't.me/{admin.username}') if admin.username else Button.inline(fullname, '')
+            buttons.append([button, Button.inline('❌', f'delete_admin:{admin.id}')])
+
+        buttons.append([Button.inline('Add admin', 'add_admin:True'), Button.inline('Add editor', 'add_admin')])
+        buttons.append([Button.inline('« Back', 'menu')])
+
+        if edit:
+            await self.event.edit('Admins' if not text else text, buttons=buttons)
+        else:
+            await self.respond('Admins' if not text else text, buttons=buttons)
+
+    async def add_admin(self, admin=False):
+        self.user_db.flow = 'add_admin:True' if admin else 'add_admin'
+        await self.user_db.save()
+
+        buttons = [[Button.inline('« Back', 'admins_list')]]
+        await self.event.edit(
+            'Enter a link to the user.' + msg.user_links_examples, buttons=buttons, link_preview=False)
+
+    async def delete_admin(self, user_id, delete=False):
+        if int(user_id) == self.user_id:
+            await self.event.answer('You cannot delete yourself.')
+            return
+
+        if not delete:
+            buttons = [[Button.inline('No', 'admins_list'), Button.inline('Yes', f'delete_admin:{user_id}:{True}')]]
+            await self.event.edit('Are you sure you want to remove this administrator?', buttons=buttons)
+            return
+
+        user_db = await User.filter(id=user_id).first()
+        user_db.is_admin = False
+        user_db.is_editor = False
+        await user_db.save()
+
+        await self.event.answer('You have successfully removed the administrator.')
+        await self.admins_list()
 
     async def menu(self, edit=True):
         await self.reset_flow()
         try:
             me = await stg.client_user.get_me()
-            text = f'Account: {me.first_name}' + (f' {me.last_name}' if me.last_name else str())
+            text = f'{me.first_name}' + (f' {me.last_name}' if me.last_name else str())
         except Exception:
             text = 'Account not authorized'
 
         _menu = deepcopy(btn.menu)
-        _menu.insert(0, [Button.inline(text, 'authorized_account')])
+        buttons = [Button.inline(text, 'authorized_account')]
+        if self.user_db.is_admin:
+            buttons.append(Button.inline('Admins', 'admins_list'))
+        _menu.insert(0, buttons)
 
-        if edit:
-            await self.event.edit('Menu', buttons=_menu)
-        else:
-            await self.respond('Menu', buttons=_menu)
+        await self.event.edit('Menu', buttons=_menu) if edit else await self.respond('Menu', buttons=_menu)
 
     async def insert_channel(self, edit=True, message=None):
         await self.reset_flow()
@@ -548,6 +622,15 @@ class ManageBot:
                 id=self.user_id, first_name=self.user.first_name,
                 last_name=self.user.last_name, username=self.user.username)
             await self.user_db.save()
+
+    async def check_new_user(self, user_ent):
+        user_db = await User.filter(id=user_ent.id).first()
+        if not user_db:
+            user_db = User(
+                id=user_ent.id, first_name=user_ent.first_name,
+                last_name=user_ent.last_name, username=user_ent.username)
+            await user_db.save()
+        return user_db
 
     async def update_user(self):
         changed = False

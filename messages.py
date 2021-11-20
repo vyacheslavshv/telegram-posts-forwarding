@@ -26,6 +26,14 @@ For example:
 - @channel
 """
 
+user_links_examples = """
+
+For example:
+- https://t.me/username
+- t.me/username
+- @username
+"""
+
 enter_link_to_channel = 'Enter the link of our channel to which publications will be translated.' + links_examples
 enter_link_from_channel = 'Excellent! Now enter the link of channel from which we will transfer the publications.' + links_examples
 
