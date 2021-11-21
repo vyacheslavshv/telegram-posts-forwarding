@@ -13,7 +13,6 @@ config = ConfigParser()
 config.read('config.ini')
 config.sections()
 TOKEN_BOT = config['BOT']['Token']
-# TOKEN_BOT = '2119379246:AAH65mUK8cjLj_ggscapWqGRiigpSdBjANQ'
 
 TG_API_ID = 1910144
 TG_API_HASH = "275a53e95d045f6d980c222640f36add"
