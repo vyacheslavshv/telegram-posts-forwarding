@@ -1,5 +1,6 @@
 import logging
 from logging.handlers import RotatingFileHandler
+from configparser import ConfigParser
 
 logger = logging.getLogger("telegram")
 logger.setLevel(logging.INFO)
@@ -8,8 +9,11 @@ formatter = logging.Formatter(fmt='%(asctime)s : %(levelname)s : %(message)s', d
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-TOKEN_BOT = '2119379246:AAH65mUK8cjLj_ggscapWqGRiigpSdBjANQ'
-# TOKEN_BOT = '1790953746:AAH57QwCGWgw3Ml3Mz2FXjktf5FKBsqcTSk' #Upwork Testing Bot
+config = ConfigParser()
+config.read('config.ini')
+config.sections()
+TOKEN_BOT = config['BOT']['Token']
+# TOKEN_BOT = '2119379246:AAH65mUK8cjLj_ggscapWqGRiigpSdBjANQ'
 
 TG_API_ID = 1910144
 TG_API_HASH = "275a53e95d045f6d980c222640f36add"
