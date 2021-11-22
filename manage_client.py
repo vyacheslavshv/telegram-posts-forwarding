@@ -3,6 +3,7 @@ import re
 
 from tables import ClientUser, Transfer
 from telethon import TelegramClient
+from telethon.tl.types import MessageEntityTextUrl
 
 
 class ManageClient:
@@ -26,6 +27,12 @@ class ManageClient:
         if private_chat_link:
             stg.logger.info("[-] Private join chat link found, skipping it.")
             return False
+
+        if self.event.message.entities:
+            for entity in self.event.message.entities:
+                if isinstance(entity, MessageEntityTextUrl):
+                    stg.logger.info("[-] Entity url link found, skipping it.")
+                    return False
 
         telegram_tags = re.findall(r"@\w+", self.event.raw_text)
         if telegram_tags:
