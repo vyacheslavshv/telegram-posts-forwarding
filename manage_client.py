@@ -34,6 +34,10 @@ class ManageClient:
                     stg.logger.info("[-] Entity url link found, skipping it.")
                     return False
 
+        if not (self.event.raw_text and self.event.message.media):
+            stg.logger.info("[-] There is no text or media, skipping it.")
+            return False
+
         telegram_tags = re.findall(r"@\w+", self.event.raw_text)
         if telegram_tags:
             for telegram_tag in telegram_tags:
