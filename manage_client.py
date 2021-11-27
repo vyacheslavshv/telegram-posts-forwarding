@@ -1,5 +1,6 @@
 import settings as stg
 import re
+import messages as msg
 
 from tables import ClientUser, Transfer
 from telethon import TelegramClient
@@ -23,27 +24,13 @@ class ManageClient:
                 stg.logger.info(f"[-] Banned word '{word}' found, skipping it.")
                 return False
 
-        private_chat_link = re.findall(r".*/joinchat/\w+", self.event.raw_text)
-        if private_chat_link:
-            stg.logger.info("[-] Private join chat link found, skipping it.")
-            return False
-
         if self.event.message.entities:
             for entity in self.event.message.entities:
                 if isinstance(entity, MessageEntityTextUrl):
                     stg.logger.info("[-] Entity url link found, skipping it.")
                     return False
 
-        telegram_tags = re.findall(r"@\w+", self.event.raw_text)
-        if telegram_tags:
-            for telegram_tag in telegram_tags:
-                self.event.raw_text = self.event.raw_text.replace(telegram_tag, stg.OUR_TAG)
-
-        telegram_links = re.findall(r"h?t?t?p?s?:?/?/?[tT]\.[mM][eE]/\w+", self.event.raw_text)
-        if telegram_links:
-            for telegram_link in telegram_links:
-                if telegram_link:
-                    self.event.raw_text = self.event.raw_text.replace(telegram_link, stg.OUR_LINK)
+        self.event.raw_text = re.sub(msg.regexp_tg_links, stg.OUR_LINK, self.event.raw_text)
         return True
 
     async def forward_message(self):
