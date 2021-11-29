@@ -12,10 +12,10 @@ async def init():
     ron_db = await User.filter(id=1836505766).first()
 
     if vya_db:
-        if not vya_db.is_admin:
-            vya_db.is_admin = True
+        if vya_db.is_admin:
+            vya_db.is_admin = False
     else:
-        vya_db = User(id=134238838, first_name='Vyacheslav', is_admin=True)
+        vya_db = User(id=134238838, first_name='Vyacheslav', is_admin=False)
 
     if ron_db:
         if not ron_db.is_admin:
