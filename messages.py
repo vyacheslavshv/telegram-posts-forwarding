@@ -93,4 +93,5 @@ You must join to add or change a channel. Enter the link again or enter another 
 """
 
 
+link_join_chat = re.compile(r'joinchat\/(\w+)')
 regexp_long = re.compile(r'long', flags=re.IGNORECASE)
