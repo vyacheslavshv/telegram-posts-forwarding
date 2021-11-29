@@ -352,9 +352,12 @@ class ManageBot:
 
     async def insert_channel(self, edit=True, message=None):
         await self.reset_flow()
+        if edit and not await self.check_authentication():
+            await self.event.answer(msg.account_not_authorized)
+            return
 
         categories_db = await Category.all()
-        if not categories_db:
+        if edit and not categories_db:
             await self.event.answer('First create a category using the "Categories by Topics" button.', alert=True)
             return
 
@@ -422,8 +425,8 @@ class ManageBot:
         for row in range(current_transfers_number):
             transfer = transfers[row]
             buttons.append(
-                [Button.inline(f'{transfer.channel_from.title}', f'edit_transfer_from:{transfer.id}:{page}'),
-                 Button.inline(f'{transfer.channel_to.title}', f'edit_transfer_to:{transfer.id}:{page}'),
+                [Button.inline(f'{transfer.channel_from.title}', f'edit_transfer_from:{transfer.id}'),
+                 Button.inline(f'{transfer.channel_to.title}', f'edit_transfer_to:{transfer.id}'),
                  Button.inline('🟢' if transfer.is_working else '🔴', f'edit_transfer_working:{transfer.id}')])
 
         back = False
@@ -466,6 +469,13 @@ class ManageBot:
             await self.respond(msg.only_for_administrators)
             return False
         return True
+
+    async def check_authentication(self):
+        try:
+            await stg.client_user.get_me()
+            return True
+        except Exception:
+            return False
 
     async def add_category(self):
         self.user_db.flow = f'add_category'
@@ -562,6 +572,9 @@ class ManageBot:
         transfer_db = await Transfer.filter(id=transfer_id).first()
         if await self.check_transfer(transfer_db):
             return
+        if not await self.check_authentication():
+            await self.event.answer(msg.account_not_authorized)
+            return
 
         self.user_db.flow = f'edit_transfer_from:{transfer_id}'
         await self.user_db.save()
@@ -573,12 +586,15 @@ class ManageBot:
         transfer_db = await Transfer.filter(id=transfer_id).first()
         if await self.check_transfer(transfer_db):
             return
+        if not await self.check_authentication():
+            await self.event.answer(msg.account_not_authorized)
+            return
 
         self.user_db.flow = f'edit_transfer_to:{transfer_id}'
         await self.user_db.save()
 
         buttons = [[Button.inline('« Back', f'category:{transfer_db.category_id}')]]
-        await self.event.edit(msg.enter_new_link_from_channel, buttons=buttons)
+        await self.event.edit(msg.enter_new_link_to_channel, buttons=buttons)
 
     async def edit_transfer_working(self, transfer_id):
         transfer_db = await Transfer.filter(id=transfer_id).first()
