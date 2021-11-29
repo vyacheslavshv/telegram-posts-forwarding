@@ -516,7 +516,7 @@ class ManageBot:
                 except UserAlreadyParticipantError:
                     pass
 
-            channel_ent = await stg.client_user.get_entity(self.text)
+            channel_ent = await stg.client_user.get_entity(self.text.replace('+', 'joinchat/'))
             assert isinstance(channel_ent, types.Channel)
 
             if not check_link:
