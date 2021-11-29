@@ -92,6 +92,7 @@ You cannot join a private channel. Find out what the reason is (maybe you are ba
 You must join to add or change a channel. Enter the link again or enter another channel link:
 """
 
+account_not_authorized = "Error! First, authorize your account."
 
 link_join_chat = re.compile(r'joinchat\/(\w+)')
 regexp_tg_links = re.compile(r'(?:(?:https?://)?t\.me/(?:\w|/)+|@\w+)', flags=re.IGNORECASE)
