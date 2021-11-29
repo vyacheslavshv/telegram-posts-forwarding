@@ -94,4 +94,4 @@ You must join to add or change a channel. Enter the link again or enter another 
 
 account_not_authorized = "Error! First, authorize your account."
 
-link_join_chat = re.compile(r'joinchat\/(\w+)')
+link_join_chat = re.compile(r'(?:joinchat\/|\+)(\w+)')
