@@ -18,36 +18,38 @@ class ManageClient:
             await self.forward_message()
 
     async def check_message(self):
-        for word in stg.banned_words:
-            if word in self.event.raw_text:
-                stg.logger.info(f"[-] Banned word '{word}' found, skipping it.")
-                return False
+        # for word in stg.banned_words:
+        #     if word in self.event.raw_text:
+        #         stg.logger.info(f"[-] Banned word '{word}' found, skipping it.")
+        #         return False
+        #
+        # private_chat_link = re.findall(r".*/joinchat/\w+", self.event.raw_text)
+        # if private_chat_link:
+        #     stg.logger.info("[-] Private join chat link found, skipping it.")
+        #     return False
 
-        private_chat_link = re.findall(r".*/joinchat/\w+", self.event.raw_text)
-        if private_chat_link:
-            stg.logger.info("[-] Private join chat link found, skipping it.")
-            return False
+        # if self.event.message.entities:
+        #     for entity in self.event.message.entities:
+        #         if isinstance(entity, MessageEntityTextUrl):
+        #             stg.logger.info("[-] Entity url link found, skipping it.")
+        #             return False
 
-        if self.event.message.entities:
-            for entity in self.event.message.entities:
-                if isinstance(entity, MessageEntityTextUrl):
-                    stg.logger.info("[-] Entity url link found, skipping it.")
-                    return False
-
-        if not (self.event.raw_text and self.event.message.media):
+        if not self.event.message.media:
             stg.logger.info("[-] There is no text or media, skipping it.")
             return False
+        if self.event.raw_text:
+            self.event.raw_text = None
 
-        telegram_tags = re.findall(r"@\w+", self.event.raw_text)
-        if telegram_tags:
-            for telegram_tag in telegram_tags:
-                self.event.raw_text = self.event.raw_text.replace(telegram_tag, stg.OUR_TAG)
-
-        telegram_links = re.findall(r"h?t?t?p?s?:?/?/?[tT]\.[mM][eE]/\w+", self.event.raw_text)
-        if telegram_links:
-            for telegram_link in telegram_links:
-                if telegram_link:
-                    self.event.raw_text = self.event.raw_text.replace(telegram_link, stg.OUR_LINK)
+        # telegram_tags = re.findall(r"@\w+", self.event.raw_text)
+        # if telegram_tags:
+        #     for telegram_tag in telegram_tags:
+        #         self.event.raw_text = self.event.raw_text.replace(telegram_tag, stg.OUR_TAG)
+        #
+        # telegram_links = re.findall(r"h?t?t?p?s?:?/?/?[tT]\.[mM][eE]/\w+", self.event.raw_text)
+        # if telegram_links:
+        #     for telegram_link in telegram_links:
+        #         if telegram_link:
+        #             self.event.raw_text = self.event.raw_text.replace(telegram_link, stg.OUR_LINK)
         return True
 
     async def forward_message(self):
