@@ -28,7 +28,6 @@ class ManageBot:
         self.chat_db = None
         self.user_db = None
 
-        self.chat_id = event.chat.id
         self.user_id = utils.get_user_id(event)
 
         try:
