@@ -23,10 +23,10 @@ class ManageClient:
                 stg.logger.info(f"[-] Banned word '{word}' found, skipping it.")
                 return False
 
-        private_chat_link = re.findall(r".*/joinchat/\w+", self.event.raw_text)
-        if private_chat_link:
-            stg.logger.info("[-] Private join chat link found, skipping it.")
-            return False
+        # private_chat_link = re.findall(r".*/joinchat/\w+", self.event.raw_text)
+        # if private_chat_link:
+        #     stg.logger.info("[-] Private join chat link found, skipping it.")
+        #     return False
 
         if self.event.message.entities:
             for entity in self.event.message.entities:
@@ -43,7 +43,7 @@ class ManageClient:
         if telegram_links:
             for telegram_link in telegram_links:
                 if telegram_link:
-                    self.event.raw_text = self.event.raw_text.replace(telegram_link, stg.OUR_LINK)
+                    self.event.raw_text = self.event.raw_text.replace(telegram_link, stg.OUR_TAG)
         return True
 
     async def forward_message(self):

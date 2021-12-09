@@ -23,10 +23,10 @@ client_user_db = None
 
 banned_words = {
     "וויד", "ביקורת", "חממה", "פרסומת", "פרסום","בוטיק" ,"חשיש", "קנאביס", "ערוץ ביקורות", "מבצע", "פירסומת",
-    "מחירון פירסום", "המדליף", "סאטיבה", "אינדיקה", "מתחזה", "קזינו", "הימורים", "t.me/", "zop", "פורסם"
+    "מחירון פירסום", "המדליף", "סאטיבה", "אינדיקה", "מתחזה", "קזינו", "הימורים", "zop", "פורסם"
 }
 
-OUR_LINK = "http://t.me/GlobalNewsRobot"
-OUR_TAG = "@GlobalNewsRobot"
+OUR_LINK = "http://t.me/BestNewsIsraelBot"
+OUR_TAG = "@BestNewsIsraelBot"
 
 TRANSFERS_PER_PAGE = 10
