@@ -19,7 +19,7 @@ class ManageClient:
 
     async def check_message(self):
         for word in stg.banned_words:
-            if word in self.event.raw_text:
+            if word in self.event.text:
                 stg.logger.info(f"[-] Banned word '{word}' found, skipping it.")
                 return False
 
@@ -28,22 +28,28 @@ class ManageClient:
         #     stg.logger.info("[-] Private join chat link found, skipping it.")
         #     return False
 
-        if self.event.message.entities:
-            for entity in self.event.message.entities:
-                if isinstance(entity, MessageEntityTextUrl):
-                    stg.logger.info("[-] Entity url link found, skipping it.")
-                    return False
+        # if self.event.message.entities:
+        #     for entity in self.event.message.entities:
+        #         if isinstance(entity, MessageEntityTextUrl):
+        #             print(entity)
+        #             telegram_link = re.findall(r"h?t?t?p?s?:?/?/?[tT]\.[mM][eE]/\w+", entity.url)
+        #             if telegram_link:
+        #                 entity.url = stg.OUR_LINK
+        #                 print('Поменяли:', entity)
+        #     print()
+        #     for entity in self.event.message.entities:
+        #         print(entity)
 
-        telegram_tags = re.findall(r"@\w+", self.event.raw_text)
+        telegram_tags = re.findall(r"@\w+", self.event.text)
         if telegram_tags:
             for telegram_tag in telegram_tags:
-                self.event.raw_text = self.event.raw_text.replace(telegram_tag, stg.OUR_TAG)
+                self.event.text = self.event.text.replace(telegram_tag, stg.OUR_TAG)
 
-        telegram_links = re.findall(r"h?t?t?p?s?:?/?/?[tT]\.[mM][eE]/\w+", self.event.raw_text)
+        telegram_links = re.findall(r"(?:https?://)?t\.me/\w+", self.event.text, flags=re.IGNORECASE)
         if telegram_links:
             for telegram_link in telegram_links:
                 if telegram_link:
-                    self.event.raw_text = self.event.raw_text.replace(telegram_link, stg.OUR_TAG)
+                    self.event.text = self.event.text.replace(telegram_link, stg.OUR_LINK)
         return True
 
     async def forward_message(self):

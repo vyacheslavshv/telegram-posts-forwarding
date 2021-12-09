@@ -26,7 +26,7 @@ banned_words = {
     "מחירון פירסום", "המדליף", "סאטיבה", "אינדיקה", "מתחזה", "קזינו", "הימורים", "zop", "פורסם"
 }
 
-OUR_LINK = "http://t.me/BestNewsIsraelBot"
+OUR_LINK = "t.me/BestNewsIsraelBot"
 OUR_TAG = "@BestNewsIsraelBot"
 
 TRANSFERS_PER_PAGE = 10
