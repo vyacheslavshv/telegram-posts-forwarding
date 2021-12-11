@@ -2,7 +2,7 @@ import settings as stg
 import re
 import messages as msg
 
-from tables import ClientUser, Transfer, ForwardingRemaining
+from tables import ClientUser, Transfer
 from telethon import TelegramClient
 from telethon.tl.types import MessageEntityTextUrl
 
@@ -34,14 +34,12 @@ class ManageClient:
         return True
 
     async def forward_message(self):
-        forwarding_remaining_db = await ForwardingRemaining.filter(id=1).first()
-
         async for transfer_db in Transfer.filter(channel_from_id=self.chat_id, is_working=True).all():
-            if forwarding_remaining_db.number > 0:
+            if transfer_db.transfers_left > 0:
                 await stg.client_user.send_message(transfer_db.channel_to_id, self.event.message)
 
-                forwarding_remaining_db.number -= 1
-                await forwarding_remaining_db.save()
+                transfer_db.transfers_left -= 1
+                await transfer_db.save()
 
 
 class ClientEventHelper:

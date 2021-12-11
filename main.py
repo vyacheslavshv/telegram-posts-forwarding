@@ -8,7 +8,7 @@ from manage_client import ManageClient
 from telethon import events
 from telethon import TelegramClient
 
-from tables import ClientUser, ForwardingRemaining
+from tables import ClientUser, Transfer
 from datetime import datetime, timedelta
 
 
@@ -80,13 +80,8 @@ async def check_client_user_db():
         await stg.client_user_db.save()
 
 
-async def check_forwarding_remaining():
+async def nullify_transfers_left():
     while True:
-        forwarding_remaining = await ForwardingRemaining.filter(id=1).first()
-        if not forwarding_remaining:
-            forwarding_remaining = ForwardingRemaining(id=1, number=25)
-            await forwarding_remaining.save()
-
         now = datetime.now()
         next_day = now + timedelta(days=1)
         next_day_null = datetime(year=next_day.year, month=next_day.month, day=next_day.day)
@@ -95,15 +90,17 @@ async def check_forwarding_remaining():
         if time_sleep:
             await asyncio.sleep(time_sleep)
 
-        if forwarding_remaining.number != 25:
-            forwarding_remaining.number = 25
-            await forwarding_remaining.save()
+        transfers_db = await Transfer.all()
+        for transfer_db in transfers_db:
+            if transfer_db.transfers_left != 25:
+                transfer_db.transfers_left = 25
+                await transfer_db.save()
 
 
 async def main():
     await database.init()
     await check_client_user_db()
-    asyncio.create_task(check_forwarding_remaining())
+    asyncio.create_task(nullify_transfers_left())
 
     await manage_client.connect_user_tg()
     asyncio.create_task(register_user_webhook())

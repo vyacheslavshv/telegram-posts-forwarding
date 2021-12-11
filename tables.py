@@ -66,15 +66,8 @@ class Transfer(Model):
     )
 
     is_working = fields.BooleanField()
+    transfers_left = fields.SmallIntField(default=25)
 
     def __repr__(self):
-        return f'Transfer({self.id}, {self.channel_from}, {self.channel_to}, {self.is_working}, {self.category})'
-
-
-class ForwardingRemaining(Model):
-
-    id = fields.SmallIntField(pk=True)
-    number = fields.SmallIntField()
-
-    def __repr__(self):
-        return f'ForwardingRemaining({self.id}, {self.number})'
+        return f'Transfer({self.id}, {self.channel_from}, {self.channel_to}, {self.is_working}, {self.category}, ' \
+               f'{self.transfers_left})'
