@@ -54,7 +54,6 @@ class Channel(Model):
 class Transfer(Model):
 
     id = fields.IntField(pk=True)
-
     channel_from: fields.ForeignKeyRelation[Channel] = fields.ForeignKeyField(
         "models.Channel", related_name="transfers_from"
     )
@@ -64,8 +63,16 @@ class Transfer(Model):
     category: fields.ForeignKeyRelation[Category] = fields.ForeignKeyField(
         "models.Category", related_name="transfers"
     )
-
     is_working = fields.BooleanField()
 
     def __repr__(self):
         return f'Transfer({self.id}, {self.channel_from}, {self.channel_to}, {self.is_working}, {self.category})'
+
+
+class StopWord(Model):
+
+    id = fields.UUIDField(pk=True)
+    word = fields.CharField(unique=True, max_length=100)
+
+    def __repr__(self):
+        return f'StopWord({self.id, self.word})'

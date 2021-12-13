@@ -1,7 +1,7 @@
 import settings as stg
 import re
 
-from tables import ClientUser, Transfer
+from tables import ClientUser, Transfer, StopWord
 from telethon import TelegramClient
 from telethon.tl.types import MessageEntityTextUrl
 
@@ -18,27 +18,10 @@ class ManageClient:
             await self.forward_message()
 
     async def check_message(self):
-        for word in stg.banned_words:
-            if word in self.event.text:
-                stg.logger.info(f"[-] Banned word '{word}' found, skipping it.")
-                return False
-
-        # private_chat_link = re.findall(r".*/joinchat/\w+", self.event.raw_text)
-        # if private_chat_link:
-        #     stg.logger.info("[-] Private join chat link found, skipping it.")
-        #     return False
-
-        # if self.event.message.entities:
-        #     for entity in self.event.message.entities:
-        #         if isinstance(entity, MessageEntityTextUrl):
-        #             print(entity)
-        #             telegram_link = re.findall(r"h?t?t?p?s?:?/?/?[tT]\.[mM][eE]/\w+", entity.url)
-        #             if telegram_link:
-        #                 entity.url = stg.OUR_LINK
-        #                 print('Поменяли:', entity)
-        #     print()
-        #     for entity in self.event.message.entities:
-        #         print(entity)
+        stop_word_db = await StopWord.filter(word=self.event.raw_text).first()
+        if stop_word_db:
+            stg.logger.info(f"[-] Banned word '{stop_word_db.word}' found, skipping it.")
+            return False
 
         telegram_tags = re.findall(r"@\w+", self.event.text)
         if telegram_tags:
