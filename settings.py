@@ -21,12 +21,8 @@ client_bot = None
 client_user = None
 client_user_db = None
 
-banned_words = {
-    "וויד", "ביקורת", "חממה", "פרסומת", "פרסום","בוטיק" ,"חשיש", "קנאביס", "ערוץ ביקורות", "מבצע", "פירסומת",
-    "מחירון פירסום", "המדליף", "סאטיבה", "אינדיקה", "מתחזה", "קזינו", "הימורים", "t.me/", "zop", "פורסם"
-}
-
 OUR_LINK = "http://t.me/GlobalNewsRobot"
 OUR_TAG = "@GlobalNewsRobot"
 
 TRANSFERS_PER_PAGE = 10
+STOP_WORDS_PER_PAGE = 20

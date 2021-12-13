@@ -4,7 +4,7 @@ import re
 import settings as stg
 import buttons as btn
 
-from tables import User, Category, Transfer, Channel
+from tables import User, Category, Transfer, Channel, StopWord
 
 from telethon.errors import \
     PhoneCodeExpiredError, PasswordHashInvalidError, \
@@ -28,7 +28,6 @@ class ManageBot:
         self.chat_db = None
         self.user_db = None
 
-        # self.chat_id = event.chat.id
         self.user_id = utils.get_user_id(event)
 
         try:
@@ -286,6 +285,27 @@ class ManageBot:
                 await self.admins_list(text, edit=False)
                 return
 
+            if 'add_stop_word' in self.user_db.flow:
+                buttons = [[Button.inline('« Back', 'stop_words')]]
+                try:
+                    stop_word_db = await StopWord.filter(word=self.text).first()
+                    if stop_word_db:
+                        await self.respond('Such a stop word already exists. Enter another:', buttons=buttons)
+                        return
+                    if len(self.text) > 100:
+                        await self.respond(msg.more_than_100_char_stop_word, buttons=buttons)
+                        return
+                    stop_word_db = StopWord(word=self.text)
+                    await stop_word_db.save()
+
+                except Exception:
+                    stg.logger.exception('')
+                    await self.respond('Error saving stop word. Enter another:', buttons=buttons)
+                    return
+
+                await self.stop_words(edit=False, message='The stop word was saved successfully.')
+                return
+
         await self.menu(edit=False)
 
     async def admins_list(self, text=str(), edit=True):
@@ -344,9 +364,12 @@ class ManageBot:
 
         _menu = deepcopy(btn.menu)
         buttons = [Button.inline(text, 'authorized_account')]
+        _menu.insert(0, buttons)
+
+        buttons = [Button.inline('Stop words', 'stop_words')]
         if self.user_db.is_admin:
             buttons.append(Button.inline('Admins', 'admins_list'))
-        _menu.insert(0, buttons)
+        _menu.insert(1, buttons)
 
         await self.event.edit('Menu', buttons=_menu) if edit else await self.respond('Menu', buttons=_menu)
 
@@ -608,6 +631,15 @@ class ManageBot:
         await transfer_db.save()
         await self.category(transfer_db.category_id)
 
+    async def delete_stop_word(self, stop_word_id, page=0):
+        stop_word_db = await StopWord.filter(id=stop_word_id).first()
+        if not stop_word_db:
+            await self.event.answer('The stop word has already been removed.')
+        else:
+            await stop_word_db.delete()
+            await self.event.answer('Stop word removed.')
+        await self.stop_words(_page=page)
+
     async def insert_to_category(self, category_id):
         self.user_db.flow = f'enter_channel_to:{category_id}'
         await self.user_db.save()
@@ -621,6 +653,49 @@ class ManageBot:
             await self.event.answer(msg.only_admins_can_change_account)
         elif self.user_db.is_admin:
             await self.event.answer(msg.authorize_new_account_request, alert=True)
+
+    async def add_stop_word(self):
+        self.user_db.flow = f'add_stop_word'
+        await self.user_db.save()
+
+        buttons = [[Button.inline('« Back', 'stop_words')]]
+        await self.event.edit('Enter a stop word up to 100 characters:', buttons=buttons)
+
+    async def stop_words(self, _page=0, edit=True, message=str()):
+        await self.reset_flow()
+        page = int(_page)
+        index_by_page = page * stg.STOP_WORDS_PER_PAGE
+        stop_words = await StopWord.all()
+
+        stop_words_number = len(stop_words[index_by_page:])
+        stop_words = stop_words[index_by_page:index_by_page + stg.STOP_WORDS_PER_PAGE]
+        current_stop_words_number = len(stop_words)
+
+        buttons = [[]]
+        for row in range(current_stop_words_number):
+            button = Button.inline(f'{stop_words[row].word}', f'delete_stop_word:{stop_words[row].id}:{page}')
+            if len(buttons[-1]) == 2:
+                buttons.append(list())
+            buttons[-1].append(button)
+
+        back = False
+        current_page_button = Button.inline(f'{page + 1}', '')
+
+        if page > 0:
+            buttons.append([Button.inline(f'« {page}', f'stop_words:{page - 1}'), current_page_button])
+            back = True
+
+        if stop_words_number > stg.STOP_WORDS_PER_PAGE:
+            button = Button.inline(f'{page + 2} »', f'stop_words:{page + 1}')
+            buttons[-1].append(button) if back else buttons.append([button]) \
+                if page != 0 else buttons.append([current_page_button, button])
+
+        text = 'Added stop words. Click on the stop word to delete it:' if not message else message
+        buttons.append([Button.inline('« Back', 'menu'), Button.inline('Add stop word', 'add_stop_word')])
+        if edit:
+            await self.event.edit(text, buttons=buttons)
+        else:
+            await self.respond(text, buttons=buttons)
 
     async def check_transfer(self, transfer_db):
         if not transfer_db:
