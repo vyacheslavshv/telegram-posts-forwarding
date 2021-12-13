@@ -2,7 +2,7 @@ import settings as stg
 import re
 import messages as msg
 
-from tables import ClientUser, Transfer
+from tables import ClientUser, Transfer, StopWord
 from telethon import TelegramClient
 from telethon.tl.types import MessageEntityTextUrl
 
@@ -19,10 +19,10 @@ class ManageClient:
             await self.forward_message()
 
     async def check_message(self):
-        for word in stg.banned_words:
-            if word in self.event.raw_text:
-                stg.logger.info(f"[-] Banned word '{word}' found, skipping it.")
-                return False
+        stop_word_db = await StopWord.filter(word=self.event.raw_text).first()
+        if stop_word_db:
+            stg.logger.info(f"[-] Banned word '{stop_word_db.word}' found, skipping it.")
+            return False
 
         if self.event.message.entities:
             for entity in self.event.message.entities:

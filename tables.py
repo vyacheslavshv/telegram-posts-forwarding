@@ -71,3 +71,12 @@ class Transfer(Model):
     def __repr__(self):
         return f'Transfer({self.id}, {self.channel_from}, {self.channel_to}, {self.is_working}, {self.category}, ' \
                f'{self.transfers_left})'
+
+
+class StopWord(Model):
+
+    id = fields.UUIDField(pk=True)
+    word = fields.CharField(unique=True, max_length=100)
+
+    def __repr__(self):
+        return f'StopWord({self.id, self.word})'
