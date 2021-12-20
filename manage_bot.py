@@ -1,3 +1,4 @@
+import datetime
 import utils
 import messages as msg
 import re
@@ -36,8 +37,6 @@ class ManageBot:
             self.text = None
 
     async def init_(self):
-        # self.chat = await self.event.get_chat()
-        # self.chat_db = self.session.query(tables.GroupTaskList).filter_by(group_id=self.chat.id).first()
         try:
             self.user = await self.event.get_sender()
         except AttributeError:
@@ -524,6 +523,10 @@ class ManageBot:
                 'The category contains transfers! Are you sure you want to delete it?', buttons=buttons)
             return
 
+        for transfer_db in transfers_db:
+            if transfer_db.channel_to_id in stg.stopped_channels:
+                del stg.stopped_channels[transfer_db.channel_to_id]
+
         category_db = await Category.filter(id=category_id).first()
         await category_db.delete()
         await self.event.answer('The category has been successfully deleted.')
@@ -629,6 +632,8 @@ class ManageBot:
 
         if transfer_db.is_working:
             transfer_db.is_working = False
+            if transfer_db.channel_to_id in stg.stopped_channels:
+                del stg.stopped_channels[transfer_db.channel_to_id]
         else:
             transfer_db.is_working = True
         await transfer_db.save()
@@ -747,6 +752,31 @@ class ManageBot:
     async def reconnect_client_user(self):
         await stg.client_user.disconnect()
         await stg.client_user.connect()
+
+    async def system_updates(self):
+        try:
+            me = await stg.client_user.get_me()
+            text = f'Account "{me.first_name}' + (f' {me.last_name}"' if me.last_name else '"') + ' authorized.\n\n'
+        except Exception:
+            await self.event.answer('Account not authorized or banned!\n\n')
+            return
+
+        if stg.user_flood_wait:
+            now = datetime.datetime.now()
+            if stg.user_flood_wait > now:
+                delta = stg.user_flood_wait - now
+                text += f'The account is in flood, it remains to wait: {delta.seconds} seconds.\n\n'
+
+        if stg.stopped_channels:
+            stopped_text = 'Not working channels:\n'
+            for n, channel_id in enumerate(
+                    sorted(stg.stopped_channels, key=lambda x: stg.stopped_channels[x][0]), start=1):
+                stopped_text += f'{n}. {stg.stopped_channels[channel_id][0]}' + \
+                                f' (@{stg.stopped_channels[channel_id][1]})\n' \
+                    if stg.stopped_channels[channel_id][1] else str()
+            text += stopped_text
+
+        await self.event.edit(text, buttons=[[Button.inline('« Back', data='menu')]])
 
     async def reset_flow(self):
         if self.user_db.flow:
