@@ -20,11 +20,8 @@ TG_API_HASH = "275a53e95d045f6d980c222640f36add"
 client_bot = None
 client_user = None
 client_user_db = None
-
-# banned_words = {
-#     "וויד", "ביקורת", "חממה", "פרסומת", "פרסום","בוטיק" ,"חשיש", "קנאביס", "ערוץ ביקורות", "מבצע", "פירסומת",
-#     "מחירון פירסום", "המדליף", "סאטיבה", "אינדיקה", "מתחזה", "קזינו", "הימורים", "t.me/", "zop", "פורסם"
-# }
+user_flood_wait = None
+stopped_channels = dict()
 
 OUR_LINK = "http://t.me/GlobalNewsRobot"
 OUR_TAG = "@GlobalNewsRobot"
