@@ -23,8 +23,8 @@ client_user_db = None
 user_flood_wait = None
 stopped_channels = dict()
 
-OUR_LINK = "http://t.me/GlobalNewsRobot"
-OUR_TAG = "@GlobalNewsRobot"
+OUR_LINK = "http://t.me/GlobalPortalBot"
+OUR_TAG = "@GlobalPortalBot"
 
 TRANSFERS_PER_PAGE = 10
 STOP_WORDS_PER_PAGE = 20
