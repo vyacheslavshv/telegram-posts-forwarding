@@ -20,6 +20,8 @@ TG_API_HASH = "275a53e95d045f6d980c222640f36add"
 client_bot = None
 client_user = None
 client_user_db = None
+user_flood_wait = None
+stopped_channels = dict()
 
 OUR_LINK = "http://t.me/GlobalNewsRobot"
 OUR_TAG = "@GlobalNewsRobot"
