@@ -71,8 +71,7 @@ The password you entered is invalid. Enter your password again. To start authent
 """
 
 only_for_administrators = """
-The bot functionality is available only for editors and administrators. 
-Contact @Yaronlondon12 to update your status.
+The bot functionality is available only for editors and administrators.
 """
 
 only_admins_can_change_account = "Only administrators can change an account."
