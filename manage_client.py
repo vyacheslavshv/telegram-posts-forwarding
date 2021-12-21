@@ -5,6 +5,8 @@ import messages as msg
 from tables import ClientUser, Transfer, StopWord
 from telethon import TelegramClient
 from telethon.tl.types import MessageEntityTextUrl
+from telethon.errors import FloodWaitError
+from datetime import datetime, timedelta
 
 
 class ManageClient:
@@ -34,12 +36,23 @@ class ManageClient:
         return True
 
     async def forward_message(self):
-        async for transfer_db in Transfer.filter(channel_from_id=self.chat_id, is_working=True).all():
-            if transfer_db.transfers_left > 0:
-                await stg.client_user.send_message(transfer_db.channel_to_id, self.event.message)
-
-                transfer_db.transfers_left -= 1
-                await transfer_db.save()
+        async for transfer_db in Transfer.filter(channel_from_id=self.chat_id, is_working=True).all(). \
+                prefetch_related('channel_to'):
+            try:
+                if transfer_db.transfers_left > 0:
+                    await stg.client_user.send_message(transfer_db.channel_to_id, self.event.message)
+                    transfer_db.transfers_left -= 1
+                    await transfer_db.save()
+                if stg.user_flood_wait:
+                    stg.user_flood_wait = None
+                if transfer_db.channel_to_id in stg.stopped_channels:
+                    del stg.stopped_channels[transfer_db.channel_to_id]
+            except FloodWaitError as e:
+                stg.user_flood_wait = datetime.now() + timedelta(seconds=e.seconds)
+            except Exception:
+                stg.logger.exception('forward_message')
+                stg.stopped_channels[transfer_db.channel_to_id] = \
+                    (transfer_db.channel_to.title, transfer_db.channel_to.username)
 
 
 class ClientEventHelper:
