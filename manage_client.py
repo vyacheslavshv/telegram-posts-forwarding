@@ -44,7 +44,6 @@ class ManageClient:
 
         telegram_links = re.findall(r"(?:https?://)?t(?:elegram)?\.me/\w+", self.event.raw_text, flags=re.IGNORECASE)
         if telegram_links:
-
             for telegram_link in telegram_links:
                 if telegram_link:
                     self.event.raw_text = self.event.raw_text.replace(telegram_link, stg.OUR_LINK)
