@@ -30,7 +30,7 @@ class ManageClient:
             for telegram_tag in telegram_tags:
                 self.event.text = self.event.text.replace(telegram_tag, stg.OUR_TAG)
 
-        telegram_links = re.findall(r"(?:https?://)?t\.me/\w+", self.event.text, flags=re.IGNORECASE)
+        telegram_links = re.findall(r"(?:https?://)?t(?:elegram)?\.me/\w+", self.event.text, flags=re.IGNORECASE)
         if telegram_links:
             for telegram_link in telegram_links:
                 if telegram_link:
@@ -52,6 +52,7 @@ class ManageClient:
                 stg.logger.exception('forward_message')
                 stg.stopped_channels[transfer_db.channel_to_id] = \
                     (transfer_db.channel_to.title, transfer_db.channel_to.username)
+
 
 class ClientEventHelper:
     def __init__(self, event):
