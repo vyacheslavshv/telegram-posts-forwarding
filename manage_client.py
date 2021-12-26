@@ -42,7 +42,7 @@ class ManageClient:
             for telegram_tag in telegram_tags:
                 self.event.raw_text = self.event.raw_text.replace(telegram_tag, stg.OUR_TAG)
 
-        telegram_links = re.findall(r"h?t?t?p?s?:?/?/?[tT]\.[mM][eE]/\w+", self.event.raw_text)
+        telegram_links = re.findall(r"(?:https?://)?t(?:elegram)?\.me/\w+", self.event.raw_text, flags=re.IGNORECASE)
         if telegram_links:
             for telegram_link in telegram_links:
                 if telegram_link:
