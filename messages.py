@@ -96,4 +96,4 @@ account_not_authorized = "Error! First, authorize your account."
 more_than_100_char_stop_word = "You have entered more than 100 characters. Enter a stop word up to 100 characters:"
 
 link_join_chat = re.compile(r'(?:joinchat\/|\+)(\w+)')
-regexp_tg_links = re.compile(r'(?:(?:https?://)?t(?:elegram)?\.me/(?:\w|/)+|@\w+)', flags=re.IGNORECASE)
+regexp_tg_links = re.compile(r'(?:(?:https?://)?t(?:elegram)?\.me/[^ ]+|@\w+)', flags=re.IGNORECASE)
