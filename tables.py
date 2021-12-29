@@ -46,9 +46,10 @@ class Channel(Model):
     username = fields.TextField(null=True)
 
     transfers: fields.ReverseRelation["Transfer"]
+    posts_left = fields.SmallIntField(default=17)
 
     def __repr__(self):
-        return f'Channel({self.id}, {self.title}, {self.username})'
+        return f'Channel({self.id}, {self.title}, {self.username}, {self.posts_left})'
 
 
 class Transfer(Model):
@@ -66,11 +67,9 @@ class Transfer(Model):
     )
 
     is_working = fields.BooleanField()
-    transfers_left = fields.SmallIntField(default=25)
 
     def __repr__(self):
-        return f'Transfer({self.id}, {self.channel_from}, {self.channel_to}, {self.is_working}, {self.category}, ' \
-               f'{self.transfers_left})'
+        return f'Transfer({self.id}, {self.channel_from}, {self.channel_to}, {self.is_working}, {self.category})'
 
 
 class StopWord(Model):

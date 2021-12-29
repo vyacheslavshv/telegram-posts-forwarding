@@ -39,10 +39,10 @@ class ManageClient:
         async for transfer_db in Transfer.filter(channel_from_id=self.chat_id, is_working=True).all(). \
                 prefetch_related('channel_to'):
             try:
-                if transfer_db.transfers_left > 0:
+                if transfer_db.channel_to.posts_left > 0:
                     await stg.client_user.send_message(transfer_db.channel_to_id, self.event.message)
-                    transfer_db.transfers_left -= 1
-                    await transfer_db.save()
+                    transfer_db.channel_to.posts_left -= 1
+                    await transfer_db.channel_to.save()
                 if stg.user_flood_wait:
                     stg.user_flood_wait = None
                 if transfer_db.channel_to_id in stg.stopped_channels:

@@ -8,7 +8,7 @@ from manage_client import ManageClient
 from telethon import events
 from telethon import TelegramClient
 
-from tables import ClientUser, Transfer
+from tables import ClientUser, Transfer, Channel
 from datetime import datetime, timedelta
 
 
@@ -80,7 +80,7 @@ async def check_client_user_db():
         await stg.client_user_db.save()
 
 
-async def nullify_transfers_left():
+async def nullify_posts_left():
     while True:
         now = datetime.now()
         next_day = now + timedelta(days=1)
@@ -90,17 +90,17 @@ async def nullify_transfers_left():
         if time_sleep:
             await asyncio.sleep(time_sleep)
 
-        transfers_db = await Transfer.all()
-        for transfer_db in transfers_db:
-            if transfer_db.transfers_left != 25:
-                transfer_db.transfers_left = 25
-                await transfer_db.save()
+        channels_db = await Channel.all()
+        for channel_db in channels_db:
+            if channel_db.posts_left != 17:
+                channel_db.posts_left = 17
+                await channel_db.save()
 
 
 async def main():
     await database.init()
     await check_client_user_db()
-    asyncio.create_task(nullify_transfers_left())
+    asyncio.create_task(nullify_posts_left())
 
     await manage_client.connect_user_tg()
     asyncio.create_task(register_user_webhook())
