@@ -7,6 +7,7 @@ from telethon import TelegramClient
 from telethon.tl.types import MessageEntityTextUrl
 from telethon.errors import FloodWaitError
 from datetime import datetime, timedelta
+from tortoise.transactions import in_transaction
 
 
 class ManageClient:
@@ -40,9 +41,16 @@ class ManageClient:
                 prefetch_related('channel_to'):
             try:
                 if transfer_db.channel_to.posts_left > 0:
-                    await stg.client_user.send_message(transfer_db.channel_to_id, self.event.message)
-                    transfer_db.channel_to.posts_left -= 1
-                    await transfer_db.channel_to.save()
+                    async with in_transaction("default") as tconn:
+                        posts_left = await tconn.execute_query_dict(
+                            'SELECT posts_left FROM channel WHERE id = ?', [transfer_db.channel_to_id])
+                        if posts_left[0]['posts_left'] > 0:
+                            await stg.client_user.send_message(transfer_db.channel_to_id, self.event.message)
+                            await tconn.execute_query(
+                                'UPDATE channel SET posts_left = posts_left - 1 WHERE id = ?',
+                                [transfer_db.channel_to_id])
+                    # transfer_db.channel_to.posts_left -= 1
+                    # await transfer_db.channel_to.save()
                 if stg.user_flood_wait:
                     stg.user_flood_wait = None
                 if transfer_db.channel_to_id in stg.stopped_channels:
