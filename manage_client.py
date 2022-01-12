@@ -22,10 +22,11 @@ class ManageClient:
             await self.forward_message()
 
     async def check_message(self):
-        stop_word_db = await StopWord.filter(word=self.event.raw_text).first()
-        if stop_word_db:
-            stg.logger.info(f"[-] Banned word '{stop_word_db.word}' found, skipping it.")
-            return False
+        stop_words_db = await StopWord.all()
+        for stop_word_db in stop_words_db:
+            if stop_word_db.word in self.event.raw_text:
+                stg.logger.info(f"[-] Banned word '{stop_word_db.word}' found, skipping it.")
+                return False
 
         if self.event.message.entities:
             for entity in self.event.message.entities:
