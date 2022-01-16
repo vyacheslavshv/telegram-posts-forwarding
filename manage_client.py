@@ -26,8 +26,16 @@ class ManageClient:
         #     return False
 
         if not self.event.message.media:
-            stg.logger.info("[-] There is no text or media, skipping it.")
+            stg.logger.info("[-] There is no media, skipping it.")
             return False
+
+        try:
+            if self.event.message.media.document.mime_type in ('application/x-tgsticker', 'audio/ogg'):
+                stg.logger.info("[-] There is sticker or audio message, skipping it.")
+                return False
+        except Exception:
+            pass
+
         if self.event.raw_text:
             self.event.raw_text = None
         return True
