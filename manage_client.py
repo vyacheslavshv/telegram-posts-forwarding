@@ -30,8 +30,12 @@ class ManageClient:
             return False
 
         try:
-            if self.event.message.media.document.mime_type in ('application/x-tgsticker', 'audio/ogg'):
-                stg.logger.info("[-] There is sticker or audio message, skipping it.")
+            # Стикеры и аудио: ('application/x-tgsticker', 'audio/ogg')
+            mime = self.event.message.media.document.mime_type
+            if 'video' in mime:
+                pass
+            else:
+                stg.logger.info("[-] There is message with file, skipping it.")
                 return False
         except Exception:
             pass
