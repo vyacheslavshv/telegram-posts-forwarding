@@ -19,7 +19,7 @@ from telethon.tl.custom import Button
 from telethon.tl.functions.channels import JoinChannelRequest
 from telethon.tl.functions.messages import ImportChatInviteRequest
 from copy import deepcopy
-from tortoise.query_utils import Q
+from tortoise.expressions import Q
 
 
 class ManageBot:
