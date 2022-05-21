@@ -19,6 +19,7 @@ from telethon.tl.functions.channels import JoinChannelRequest
 from telethon.tl.functions.messages import ImportChatInviteRequest
 from copy import deepcopy
 from tortoise.expressions import Q
+from datetime import datetime, timedelta
 
 
 class ManageBot:
@@ -433,6 +434,30 @@ class ManageBot:
         else:
             await self.respond('Categories', buttons=buttons)
 
+    async def approve_post(self, _message_id, _channel_to_id):
+        try:
+            message_id, channel_to_id = int(_message_id), int(_channel_to_id)
+            await stg.client_user.send_message(channel_to_id, stg.event_messages[message_id])
+            await self.event.delete()
+            await stg.client_user.delete_messages(stg.problematic_channel, message_ids=message_id)
+            del stg.event_messages[message_id]
+        except FloodWaitError as e:
+            stg.user_flood_wait = datetime.now() + timedelta(seconds=e.seconds)
+        except KeyError:
+            await self.event.answer(
+                'Unfortunately, this post cannot be used because the bot has been reloaded.', alert=True)
+        except Exception as e:
+            stg.logger.exception('forward_message')
+            await self.event.answer(
+                'An error has occurred. You may not have permissions to send a message to the channel. '
+                'Or an error deleting current messages.', alert=True)
+
+    async def reject_post(self, _message_id):
+        message_id = int(_message_id)
+        await self.event.delete()
+        await stg.client_user.delete_messages(stg.problematic_channel, message_ids=message_id)
+        del stg.event_messages[message_id]
+
     async def category(self, category_id, _page=0, edit=True, message=None):
         await self.reset_flow()
 
@@ -451,7 +476,9 @@ class ManageBot:
             buttons.append(
                 [Button.inline(f'{transfer.channel_from.title}', f'edit_transfer_from:{transfer.id}'),
                  Button.inline(f'{transfer.channel_to.title}', f'edit_transfer_to:{transfer.id}'),
-                 Button.inline('🟢' if transfer.is_working else '🔴', f'edit_transfer_working:{transfer.id}')])
+                 Button.inline('🟢' if transfer.is_working else '🔴', f'edit_transfer_working:{transfer.id}'),
+                 Button.inline('⚠️' if transfer.channel_from.manual else '🏧',
+                               f'edit_channel_working_type:{transfer.channel_from.id}:{category_id}:{_page}')])
 
         back = False
         current_page_button = Button.inline(f'{page + 1}', '')
@@ -637,6 +664,17 @@ class ManageBot:
             transfer_db.is_working = True
         await transfer_db.save()
         await self.category(transfer_db.category_id)
+
+    async def edit_channel_working_type(self, channel_id, category_id, page):
+        channel_db = await Channel.filter(id=channel_id).first()
+        if not channel_db:
+            await self.category(category_id, page)
+            return
+
+        channel_db.manual = False if channel_db.manual else True
+        await channel_db.save()
+
+        await self.category(category_id, page)
 
     async def delete_stop_word(self, stop_word_id, page=0):
         stop_word_db = await StopWord.filter(id=stop_word_id).first()
