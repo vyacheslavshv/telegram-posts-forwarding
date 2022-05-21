@@ -118,4 +118,3 @@ if __name__ == '__main__':
             exit()
         except Exception:
             stg.logger.exception('main')
-            await asyncio.sleep(1)
