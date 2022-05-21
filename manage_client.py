@@ -6,6 +6,7 @@ from telethon import TelegramClient
 from telethon.tl.types import MessageEntityTextUrl
 from telethon.errors import FloodWaitError
 from datetime import datetime, timedelta
+from telethon.tl.custom import Button
 
 
 class ManageClient:
@@ -46,9 +47,17 @@ class ManageClient:
 
     async def forward_message(self):
         async for transfer_db in Transfer.filter(channel_from_id=self.chat_id, is_working=True).all(). \
-                prefetch_related('channel_to'):
+                prefetch_related('channel_to').prefetch_related('channel_from'):
             try:
-                await stg.client_user.send_message(transfer_db.channel_to_id, self.event.message)
+                if transfer_db.channel_from.manual:
+                    message = await stg.client_user.send_message(stg.problematic_channel, self.event.message)
+                    stg.event_messages[message.id] = self.event.message
+                    buttons = [[Button.inline('✅ Approve', f'approve_post:{message.id}:{transfer_db.channel_to_id}'),
+                                Button.inline('❌ Reject', f'reject_post:{message.id}')]]
+                    await stg.client_bot.send_message(
+                        stg.problematic_channel, 'Approve the post above?', buttons=buttons)
+                else:
+                    await stg.client_user.send_message(transfer_db.channel_to_id, self.event.message)
                 if stg.user_flood_wait:
                     stg.user_flood_wait = None
                 if transfer_db.channel_to_id in stg.stopped_channels:
