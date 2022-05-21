@@ -1,6 +1,7 @@
 import logging
 from logging.handlers import RotatingFileHandler
 from configparser import ConfigParser
+from utils import LimitedSizeDict
 
 logger = logging.getLogger("telegram")
 logger.setLevel(logging.INFO)
@@ -28,3 +29,16 @@ OUR_TAG = "@BestNewsIsraelBot"
 
 TRANSFERS_PER_PAGE = 10
 STOP_WORDS_PER_PAGE = 20
+
+TORTOISE_ORM = {
+     "connections": {"default": 'sqlite://db_files/db.sqlite3'},
+     "apps": {
+         "models": {
+             "models": ["tables", "aerich.models"],
+             "default_connection": "default",
+         },
+     },
+ }
+
+problematic_channel = -1001534901673
+event_messages = LimitedSizeDict(size_limit=500)
