@@ -90,13 +90,12 @@ async def main():
 
 
 if __name__ == '__main__':
-
-    try:
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(main())
-
-    except KeyboardInterrupt:
-        exit()
-
-    except Exception:
-        stg.logger.exception('main')
+    loop = asyncio.get_event_loop()
+    while True:
+        try:
+            loop.run_until_complete(main())
+        except KeyboardInterrupt:
+            exit()
+        except Exception:
+            stg.logger.exception('main')
+            await asyncio.sleep(1)

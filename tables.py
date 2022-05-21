@@ -44,11 +44,12 @@ class Channel(Model):
     id = fields.BigIntField(pk=True)
     title = fields.TextField()
     username = fields.TextField(null=True)
+    # manual = fields.BooleanField(null=True, default=False)
 
     transfers: fields.ReverseRelation["Transfer"]
 
     def __repr__(self):
-        return f'Channel({self.id}, {self.title}, {self.username})'
+        return f'Channel({self.id}, {self.title}, {self.username}, {self.manual})'
 
 
 class Transfer(Model):
