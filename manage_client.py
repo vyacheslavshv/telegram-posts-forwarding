@@ -8,6 +8,7 @@ from telethon.tl.types import MessageEntityTextUrl
 from telethon.errors import FloodWaitError
 from datetime import datetime, timedelta
 from tortoise.transactions import in_transaction
+from telethon.tl.custom import Button
 
 
 class ManageClient:
@@ -39,14 +40,24 @@ class ManageClient:
 
     async def forward_message(self):
         async for transfer_db in Transfer.filter(channel_from_id=self.chat_id, is_working=True).all(). \
-                prefetch_related('channel_to'):
+                prefetch_related('channel_to').prefetch_related('channel_from'):
             try:
                 if transfer_db.channel_to.posts_left > 0:
                     async with in_transaction("default") as tconn:
                         posts_left = await tconn.execute_query_dict(
                             'SELECT posts_left FROM channel WHERE id = ?', [transfer_db.channel_to_id])
                         if posts_left[0]['posts_left'] > 0:
-                            await stg.client_user.send_message(transfer_db.channel_to_id, self.event.message)
+                            if transfer_db.channel_from.manual:
+                                message = await stg.client_user.send_message(stg.problematic_channel,
+                                                                             self.event.message)
+                                stg.event_messages[message.id] = self.event.message
+                                buttons = [[Button.inline('✅ Approve',
+                                                          f'approve_post:{message.id}:{transfer_db.channel_to_id}'),
+                                            Button.inline('❌ Reject', f'reject_post:{message.id}')]]
+                                await stg.client_bot.send_message(
+                                    stg.problematic_channel, 'Approve the post above?', buttons=buttons)
+                            else:
+                                await stg.client_user.send_message(transfer_db.channel_to_id, self.event.message)
                             await tconn.execute_query(
                                 'UPDATE channel SET posts_left = posts_left - 1 WHERE id = ?',
                                 [transfer_db.channel_to_id])
