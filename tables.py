@@ -44,7 +44,7 @@ class Channel(Model):
     id = fields.BigIntField(pk=True)
     title = fields.TextField()
     username = fields.TextField(null=True)
-    # manual = fields.BooleanField(null=True, default=False)
+    manual = fields.BooleanField(null=True, default=False)
 
     transfers: fields.ReverseRelation["Transfer"]
     posts_left = fields.SmallIntField(default=17)
