@@ -421,9 +421,17 @@ class ManageBot:
     async def info_channel(self):
         self.user_db.flow = f'insert_to_summery'
         await self.user_db.save()
-
-        buttons = [[Button.inline('« Back', f'menu')]]
-
+        try:
+            summary_db = await SummeryInfo.all()
+            if summary_db:
+                for sum_db in summary_db:
+                    buttons = [[Button.inline(f'Channel Exist: {sum_db.title}', f'menu')],[Button.inline('« Back', f'menu')]]
+            else:
+                buttons = [[Button.inline('« Back', f'menu')]]
+        except Exception as e:
+            stg.logger.error(f"[info_channel] Exception:{e}")
+            buttons = [[Button.inline('« Back', f'menu')]]
+            pass
         await self.event.edit("Enter summery channel", buttons=buttons)
 
     async def insert_summery_db(self,channel_id,title,username):

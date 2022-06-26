@@ -35,8 +35,8 @@ class ManageClient:
                         summary_data = [text]
                         system_info_db = await SystemInfo.all()
                         for sysInf in system_info_db:
-                            temp_str = ('channel from: ' + str(sysInf.channel_from) + "\n" + 'from daily count: ' + str(sysInf.from_daily_count) + "\n" + 'channel to: ' + str(sysInf.channel_to)
-                                        + "\n" + 'to daily count: ' + str(sysInf.to_daily_count) + "\n" +  'category: ' + str(sysInf.category) + "\n")
+                            temp_str = ('1) ערוץ מקור: ' + str(sysInf.channel_from) + "\n" + '     פוסטים בערוץ מקור: ' + str(sysInf.from_daily_count) + "\n\n" + '2) ערוץ יעד: ' + str(sysInf.channel_to)
+                                        + "\n" + '     הודעות שעברו לערוץ יעד: ' + str(sysInf.to_daily_count) + "\n\n" +  '3) קטגוריה: ' + str(sysInf.category) + "\n")
 
                             sysInf.from_daily_count = 0
                             sysInf.to_daily_count = 0
