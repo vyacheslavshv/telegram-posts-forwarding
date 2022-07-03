@@ -138,11 +138,12 @@ class ManageClient:
                     del stg.stopped_channels[transfer_db.channel_to_id]
             except FloodWaitError as e:
                 stg.user_flood_wait = datetime.now() + timedelta(seconds=e.seconds)
+                return
             except Exception:
                 stg.logger.exception('forward_message')
                 stg.stopped_channels[transfer_db.channel_to_id] = \
                     (transfer_db.channel_to.title, transfer_db.channel_to.username)
-
+                return
 
             try:
                 system_info_db = await SystemInfo.filter(channel_from=transfer_db.channel_from.title).first()
