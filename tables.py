@@ -77,3 +77,27 @@ class StopWord(Model):
 
     def __repr__(self):
         return f'StopWord({self.id, self.word})'
+
+class SystemInfo(Model):
+
+    id = fields.IntField(pk=True)
+    channel_from = fields.CharField(max_length=100)
+    from_daily_count = fields.IntField(null=True)
+    channel_to = fields.CharField(max_length=100)
+    to_daily_count = fields.IntField(null=True)
+    category = fields.TextField()
+    
+
+    def __repr__(self):
+        return f'SystemInfo({self.id, self.channel_from, self.from_daily_count, self.channel_to, self.to_daily_count, self.category})'
+
+class SummeryInfo(Model):
+    id = fields.IntField(pk=True)
+    summary_channel = fields.BigIntField()
+    last_update = fields.DateField(null=True)
+    title = fields.TextField()
+    username = fields.TextField(null=True)
+     
+
+    def __repr__(self):
+        return f'SummeryInfo({self.last_update, self.summary_channel})'

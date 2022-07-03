@@ -1,7 +1,7 @@
 import settings as stg
 import re
 
-from tables import ClientUser, Transfer, StopWord
+from tables import ClientUser, Transfer, StopWord, SummeryInfo , SystemInfo
 from telethon import TelegramClient
 from telethon.tl.types import MessageEntityTextUrl
 from telethon.errors import FloodWaitError
@@ -17,8 +17,55 @@ class ManageClient:
         self.entities = event.message.entities
 
     async def message(self):
+        await self.check_update()
         if await self.check_message():
             await self.forward_message()
+
+
+    async def check_update(self):
+        try:
+            summary_db = await SummeryInfo.all()
+        except Exception:
+            return
+        for sum_db in summary_db:
+            try:
+                if sum_db.last_update == datetime.today().date():
+                    date = datetime.today() + timedelta(days=1)
+                    sum_db.last_update = date
+                    await sum_db.save()
+                    me = await stg.client_user.get_me()
+                    text = f' USER: {me.first_name}' + (f' {me.last_name}' if me.last_name else str())
+                    summary_data = [text]
+                    system_info_db = await SystemInfo.all()
+                    for sysInf in system_info_db:
+                        temp_str = ('\n1) ערוץ מקור: ' + str(sysInf.channel_from) + "\n" + '     פוסטים בערוץ מקור: ' + str(sysInf.from_daily_count) + "\n\n" + '2) ערוץ יעד: ' + str(sysInf.channel_to)
+                                    + "\n" + '     הודעות שעברו לערוץ יעד: ' + str(sysInf.to_daily_count) + "\n\n" +  '3) קטגוריה: ' + str(sysInf.category) + "\n")
+
+                        sysInf.from_daily_count = 0
+                        sysInf.to_daily_count = 0
+                        try:
+                            await sysInf.save()
+                        except Exception as e:
+                            stg.logger.error(f"[check_update] Exception 1:{e}")
+                            pass
+                            
+                        summary_data.append(temp_str)
+                    try:
+                        my_msg = ''
+                        for val in summary_data:
+                            my_msg = my_msg + str(val) + "\n"
+                        await stg.client_user.send_message(sum_db.summary_channel, str(my_msg))
+                    except Exception as e:
+                        stg.logger.error(f"[check_update] Exception 2:{e}")
+                else:
+                    # date is in range
+                    return 
+            except Exception as e:
+                stg.logger.error(f"[check_update] Exception 3:{e}")
+                continue
+        return
+
+
 
     async def check_message(self):
         stop_words_db = await StopWord.all()
@@ -26,6 +73,39 @@ class ManageClient:
             if stop_word_db.word in self.event.raw_text:
                 stg.logger.info(f"[-] Banned word '{stop_word_db.word}' found, skipping it.")
                 return False
+
+        category_name = None
+        async for transfer_db in Transfer.filter(channel_from_id=self.chat_id, is_working=True).all().\
+                    prefetch_related('channel_to').prefetch_related('category'):
+            category_name = transfer_db.category.name
+
+        channel_to = None
+        async for transfer_db in Transfer.filter(channel_from_id=self.chat_id, is_working=True).all().\
+                    prefetch_related('channel_from').prefetch_related('channel_to'):
+                channel_to = transfer_db.channel_to.title
+        try:
+            async for transfer_db in Transfer.filter(channel_from_id=self.chat_id, is_working=True).all().\
+                    prefetch_related('channel_to').prefetch_related('channel_from'):
+                try:
+                    system_info_db = await SystemInfo.filter(channel_from=transfer_db.channel_from.title).first()
+                    if system_info_db:
+                        system_info_db.from_daily_count += 1 
+                        await system_info_db.save()
+                    else:
+                        if channel_to:
+                            system_info_db = SystemInfo(
+                                channel_from = transfer_db.channel_from.title,
+                                from_daily_count = 1,
+                                channel_to = channel_to,
+                                to_daily_count = 0,
+                                category = category_name,
+                            )
+                            await system_info_db.save()
+                except Exception as e:
+                    stg.logger.info(f"[check_message] SystemInfo Exception: {e}")
+        except Exception as e:
+                stg.logger.info(f"[check_message] Transfer Exception: {e}")
+
 
         telegram_tags = re.findall(r"@\w+", self.event.text)
         if telegram_tags:
@@ -63,6 +143,17 @@ class ManageClient:
                 stg.stopped_channels[transfer_db.channel_to_id] = \
                     (transfer_db.channel_to.title, transfer_db.channel_to.username)
 
+
+            try:
+                system_info_db = await SystemInfo.filter(channel_from=transfer_db.channel_from.title).first()
+                if system_info_db:
+                    system_info_db.to_daily_count += 1 
+                    try:
+                        await system_info_db.save()
+                    except Exception as e:
+                        stg.logger.error(f"[forward_message] system_info_db Exception : {e}") 
+            except Exception as e:
+                stg.logger.error(f"[forward_message] Transfer Exception : {e}")
 
 class ClientEventHelper:
     def __init__(self, event):
