@@ -5,7 +5,7 @@ import re
 import settings as stg
 import buttons as btn
 
-from tables import User, Category, Transfer, Channel, StopWord
+from tables import User, Category, Transfer, Channel, StopWord, SummeryInfo
 
 from telethon.errors import \
     PhoneCodeExpiredError, PasswordHashInvalidError, \
@@ -170,6 +170,16 @@ class ManageBot:
                 await Category(name=self.text).save()
                 await self.categories_by_topics(edit=False)
                 return
+
+            if 'insert_to_summery'in self.user_db.flow:
+                channel_ent = await self.get_channel_entity(data='insert_channel')
+                if not channel_ent:
+                    await self.respond('Error! Cant find channel entity..')
+                    return
+                else:
+                    channel_to_id = get_peer_id(channel_ent, add_mark=True)
+                    await self.insert_summery_db(channel_to_id, channel_ent.title, channel_ent.username)
+                    return
 
             if 'edit_category' in self.user_db.flow:
                 if not self.text:
@@ -408,9 +418,48 @@ class ManageBot:
             channel_db = Channel(id=channel_id, title=title, username=username)
             await channel_db.save()
 
-    async def delay(self):
-        await self.reset_flow()
-        await self.event.answer('The function is being developed.')
+    async def info_channel(self):
+        self.user_db.flow = f'insert_to_summery'
+        await self.user_db.save()
+        try:
+            summary_db = await SummeryInfo.all()
+            if summary_db:
+                for sum_db in summary_db:
+                    buttons = [[Button.inline(f'Channel Exist: {sum_db.title}', f'menu')],[Button.inline('« Back', f'menu')]]
+            else:
+                buttons = [[Button.inline('« Back', f'menu')]]
+        except Exception as e:
+            stg.logger.error(f"[info_channel] Exception:{e}")
+            buttons = [[Button.inline('« Back', f'menu')]]
+            pass
+        await self.event.edit("Enter summery channel", buttons=buttons)
+
+    async def insert_summery_db(self,channel_id,title,username):
+        summary_db = await SummeryInfo.filter(summary_channel=channel_id).first()
+        if not summary_db:
+            # date = datetime.now() + timedelta(hours=24)
+            date = datetime.today()
+            summary_db = SummeryInfo(summary_channel=channel_id, last_update = date, title = title , username = username)
+            try:
+                await summary_db.save()
+                await self.respond("Summary Channel Added!")
+            except Exception as e:
+                stg.logger.error(f"[insert_summery_db] Exception1:{e}")
+        else:
+            summary_db.summary_channel = channel_id
+            summary_db.title = title
+            summary_db.username = username
+            try:
+                await summary_db.save()
+                await self.respond("Summary Channel updated!")
+            except Exception as e:
+                stg.logger.error(f"[insert_summery_db] Exception2:{e}")
+            
+        return
+
+    # async def delay(self):
+    #     await self.reset_flow()
+    #     await self.event.answer('The function is being developed.')
 
     async def system_updates(self):
         await self.reset_flow()
