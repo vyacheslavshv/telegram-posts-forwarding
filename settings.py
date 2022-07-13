@@ -24,8 +24,12 @@ client_user_db = None
 user_flood_wait = None
 stopped_channels = dict()
 
-OUR_LINK = "t.me/BestNewsIsraelBot"
-OUR_TAG = "@BestNewsIsraelBot"
+# OUR_OUTRO = "הצטרפו אלינו לערוץ"
+OUR_LINK = "👉🏼 t.me/BestNewsIsraelBot 👈🏼"
+OUR_TAG = "🔥 @BestNewsIsraelBot 🔥 "
+OUR_OUTRO = "\n\nהצטרפו אלינו לערוץ" + "\n" + OUR_LINK + "\n" + OUR_TAG
+
+
 
 TRANSFERS_PER_PAGE = 10
 STOP_WORDS_PER_PAGE = 20

@@ -110,13 +110,25 @@ class ManageClient:
         telegram_tags = re.findall(r"@\w+", self.event.text)
         if telegram_tags:
             for telegram_tag in telegram_tags:
-                self.event.text = self.event.text.replace(telegram_tag, stg.OUR_TAG)
+                self.event.text = self.event.text.replace(telegram_tag, "")
 
         telegram_links = re.findall(r"(?:https?://)?t(?:elegram)?\.me/[^ ]+", self.event.text, flags=re.IGNORECASE)
         if telegram_links:
             for telegram_link in telegram_links:
                 if telegram_link:
-                    self.event.text = self.event.text.replace(telegram_link, stg.OUR_LINK)
+                    self.event.text = self.event.text.replace(telegram_link, "")
+
+        words = re.split(r"[^\u0590-\u05FF|^A-Za-z|^0-9]", self.event.text.strip())
+        new_text = ""
+        for word in words:
+            if word:
+                new_text = new_text + word + " "
+        new_text = new_text + stg.OUR_OUTRO
+        self.event.text = new_text
+        # print("new_text",new_text)
+
+        # Here Imple change
+                    
         return True
 
     async def forward_message(self):
