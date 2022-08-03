@@ -8,14 +8,14 @@ async def init():
     await Tortoise.init(stg.TORTOISE_ORM)
     await Tortoise.generate_schemas()
 
-    vya_db = await User.filter(id=5454709111).first()
+    vya_db = await User.filter(id=5442982965).first()
     ron_db = await User.filter(id=1836505766).first()
 
     if vya_db:
         if not vya_db.is_admin:
             vya_db.is_admin = True
     else:
-        vya_db = User(id=5454709111, first_name='Vyacheslav', is_admin=True)
+        vya_db = User(id=5442982965, first_name='Vyacheslav', is_admin=True)
 
     if ron_db:
         if not ron_db.is_admin:
