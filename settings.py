@@ -25,9 +25,9 @@ client_user_db = None
 user_flood_wait = None
 stopped_channels = dict()
 
-OUR_LINK = "http://t.me/GlobalNewsRobot"
-OUR_TAG = "@GlobalNewsRobot"
-
+OUR_LINK = "http://t.me/BestNewsIsraelBot"
+OUR_TAG = "@BestNewsIsraelBot"
+OUR_OUTRO = " 📣📣 הצטרפו אלינו 📣📣" + "\n" + OUR_TAG + "\n" + OUR_LINK
 TRANSFERS_PER_PAGE = 10
 STOP_WORDS_PER_PAGE = 20
 
