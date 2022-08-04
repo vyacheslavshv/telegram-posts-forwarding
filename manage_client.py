@@ -18,9 +18,9 @@ class ManageClient:
 
     async def message(self):
         print("Yeah Got message")
-        # await self.check_update()
-        # if await self.check_message():
-        #     await self.forward_message()
+        await self.check_update()
+        if await self.check_message():
+            await self.forward_message()
 
     async def check_update(self):
         try:
