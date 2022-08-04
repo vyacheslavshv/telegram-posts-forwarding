@@ -27,7 +27,7 @@ stopped_channels = dict()
 
 OUR_LINK = "http://t.me/BestNewsIsraelBot"
 OUR_TAG = "@BestNewsIsraelBot"
-OUR_OUTRO = " 📣📣 הצטרפו אלינו 📣📣" + "\n" + OUR_TAG + "\n" + OUR_LINK
+OUR_OUTRO = "\n"  + "📣📣 הצטרפו אלינו 📣📣" +  "\n" + OUR_LINK
 TRANSFERS_PER_PAGE = 10
 STOP_WORDS_PER_PAGE = 20
 
