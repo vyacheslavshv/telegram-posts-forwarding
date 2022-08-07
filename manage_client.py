@@ -17,9 +17,10 @@ class ManageClient:
         self.entities = event.message.entities
 
     async def message(self):
-        await self.check_update()
-        if await self.check_message():
-            await self.forward_message()
+        print("Hell Yeag Got message")
+        # await self.check_update()
+        # if await self.check_message():
+        #     await self.forward_message()
 
 
     async def check_update(self):
