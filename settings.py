@@ -16,7 +16,7 @@ config.read('config.ini')
 config.sections()
 TOKEN_BOT = config['BOT']['Token']
 
-TG_API_ID = 1910144
+TG_API_ID = 1910544
 TG_API_HASH = "275a53e95d045f6d980c222640f36add"
 
 client_bot = None
