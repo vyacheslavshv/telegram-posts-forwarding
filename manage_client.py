@@ -8,7 +8,7 @@ from telethon.tl.types import MessageEntityTextUrl
 from telethon.errors import FloodWaitError
 from datetime import datetime, timedelta
 from telethon.tl.custom import Button
-
+from proxy import get_proxy
 
 class ManageClient:
 
@@ -18,7 +18,7 @@ class ManageClient:
         self.entities = event.message.entities
 
     async def message(self):
-        await self.check_update()
+        # await self.check_update()
         if await self.check_message():
             await self.forward_message()
 
@@ -186,7 +186,8 @@ async def check_client_user_db():
 
 
 async def connect_user_tg():
+    proxy = get_proxy('')
     stg.client_user = TelegramClient(
         'sessions/user', api_id=stg.TG_API_ID,
-        api_hash=stg.TG_API_HASH, base_logger='telegram')
+        api_hash=stg.TG_API_HASH, base_logger='telegram',proxy = proxy)
     await stg.client_user.connect()
