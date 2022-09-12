@@ -2,14 +2,14 @@ import settings as stg
 import re
 import messages as msg
 
-from tables import ClientUser, Transfer, StopWord
+from tables import ClientUser, Transfer, StopWord ,  SummeryInfo , SystemInfo
 from telethon import TelegramClient
 from telethon.tl.types import MessageEntityTextUrl
 from telethon.errors import FloodWaitError
 from datetime import datetime, timedelta
 from tortoise.transactions import in_transaction
 from telethon.tl.custom import Button
-
+from proxy import get_proxy
 
 class ManageClient:
 
@@ -19,10 +19,64 @@ class ManageClient:
         self.entities = event.message.entities
 
     async def message(self):
+        await self.check_update()
         if await self.check_message():
             await self.forward_message()
 
+
+    async def check_update(self):
+        try:
+            summary_db = await SummeryInfo.all()
+        except Exception:
+            return
+        for sum_db in summary_db:
+            try:
+                if sum_db.last_update == datetime.today().date():
+                    date = datetime.today() + timedelta(days=1)
+                    sum_db.last_update = date
+                    await sum_db.save()
+                    me = await stg.client_user.get_me()
+                    text = f' USER: {me.first_name}' + (f' {me.last_name}' if me.last_name else str())
+                    summary_data = [text]
+                    system_info_db = await SystemInfo.all()
+                    for sysInf in system_info_db:
+                        temp_str = ('\n1) ערוץ מקור: ' + str(sysInf.channel_from) + "\n" + '     פוסטים בערוץ מקור: ' + str(sysInf.from_daily_count) + "\n\n" + '2) ערוץ יעד: ' + str(sysInf.channel_to)
+                                    + "\n" + '     הודעות שעברו לערוץ יעד: ' + str(sysInf.to_daily_count) + "\n\n" +  '3) קטגוריה: ' + str(sysInf.category) + "\n")
+
+                        sysInf.from_daily_count = 0
+                        sysInf.to_daily_count = 0
+                        try:
+                            await sysInf.save()
+                        except Exception as e:
+                            stg.logger.error(f"[check_update] Exception 1:{e}")
+                            pass
+                            
+                        summary_data.append(temp_str)
+                    try:
+                        my_msg = ''
+                        for val in summary_data:
+                            my_msg = my_msg + str(val) + "\n"
+                        await stg.client_user.send_message(sum_db.summary_channel, str(my_msg))
+                    except Exception as e:
+                        stg.logger.error(f"[check_update] Exception 2:{e}")
+                else:
+                    # date is in range
+                    return 
+            except Exception as e:
+                stg.logger.error(f"[check_update] Exception 3:{e}")
+                continue
+        return
+
+
     async def check_message(self):
+
+        try:
+            if "MessageMediaUnsupported()" in str(self.event.message.media):
+                stg.logger.info(f"[-] MessageMediaUnsupported,channel {self.chat_id} skipping it.")
+                return False
+        except Exception as e:
+             stg.logger.info(f"[-] Cant see MessageMediaUnsupported")
+
         stop_words_db = await StopWord.all()
         for stop_word_db in stop_words_db:
             if stop_word_db.word in self.event.raw_text:
@@ -35,7 +89,25 @@ class ManageClient:
                     stg.logger.info("[-] Entity url link found, skipping it.")
                     return False
 
-        self.event.raw_text = re.sub(msg.regexp_tg_links, stg.OUR_LINK, self.event.raw_text)
+        # self.event.raw_text = re.sub(msg.regexp_tg_links, stg.OUR_LINK, self.event.raw_text)
+
+        telegram_tags = re.findall(r"@\w+", self.event.text)
+        if telegram_tags:
+            for telegram_tag in telegram_tags:
+                self.event.text = self.event.text.replace(telegram_tag, "")
+
+        telegram_links = re.findall(r"(?:https?://)?t(?:elegram)?\.me/[^ ]+", self.event.text, flags=re.IGNORECASE)
+        if telegram_links:
+            for telegram_link in telegram_links:
+                if telegram_link:
+                    self.event.text = self.event.text.replace(telegram_link, "")
+
+       
+        new_text = self.event.text + stg.OUR_OUTRO
+        self.event.text = new_text
+        
+
+
         return True
 
     async def forward_message(self):
@@ -96,7 +168,8 @@ async def check_client_user_db():
 
 
 async def connect_user_tg():
+    proxy = get_proxy('')
     stg.client_user = TelegramClient(
         'sessions/user', api_id=stg.TG_API_ID,
-        api_hash=stg.TG_API_HASH, base_logger='telegram')
+        api_hash=stg.TG_API_HASH, base_logger='telegram',proxy=proxy)
     await stg.client_user.connect()

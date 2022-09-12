@@ -6,22 +6,22 @@ from tables import User
 
 async def init():
     await Tortoise.init(stg.TORTOISE_ORM)
-    # await Tortoise.generate_schemas()
+    await Tortoise.generate_schemas()
 
-    vya_db = await User.filter(id=134238838).first()
-    ron_db = await User.filter(id=1836505766).first()
+    tommy_db = await User.filter(id=2018916309).first()
+    young_db = await User.filter(id=5448386746).first()
 
-    if vya_db:
-        if not vya_db.is_admin:
-            vya_db.is_admin = True
+    if tommy_db:
+        if not tommy_db.is_admin:
+            tommy_db.is_admin = True
     else:
-        vya_db = User(id=134238838, first_name='Vyacheslav', is_admin=True)
+        tommy_db = User(id=2018916309, first_name='Tommy', is_admin=True)
 
-    if ron_db:
-        if not ron_db.is_admin:
-            ron_db.is_admin = True
+    if young_db:
+        if not young_db.is_admin:
+            young_db.is_admin = True
     else:
-        ron_db = User(id=1836505766, first_name='Niccolo', is_admin=True)
+        young_db = User(id=5448386746, first_name='Young', is_admin=True)
 
-    await vya_db.save()
-    await ron_db.save()
+    await tommy_db.save()
+    await young_db.save()

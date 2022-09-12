@@ -26,8 +26,8 @@ user_flood_wait = None
 stopped_channels = dict()
 
 OUR_LINK = "https://t.me/joinchat/XGJy69aGmvoxYmM0"
-OUR_TAG = "@GlobalNewsRobot"
-
+OUR_TAG = "@@Sratimm1bot"
+OUR_OUTRO = "\n"  + "📣📣 הצטרפו אלינו 📣📣" +  "\n" + OUR_TAG
 TRANSFERS_PER_PAGE = 10
 STOP_WORDS_PER_PAGE = 20
 
