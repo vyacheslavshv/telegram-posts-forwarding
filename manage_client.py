@@ -86,8 +86,8 @@ class ManageClient:
         if self.event.message.entities:
             for entity in self.event.message.entities:
                 if isinstance(entity, MessageEntityTextUrl):
-                    stg.logger.info("[-] Entity url link found, skipping it.")
-                    return False
+                    stg.logger.info("[-] Entity url link found,.")
+                    # return False
 
         # self.event.raw_text = re.sub(msg.regexp_tg_links, stg.OUR_LINK, self.event.raw_text)
 
