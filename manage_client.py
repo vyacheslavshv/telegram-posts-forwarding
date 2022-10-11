@@ -195,6 +195,7 @@ async def check_client_user_db():
 
 async def connect_user_tg():
     proxy = get_proxy('')
+    stg.current_proxy = proxy
     stg.client_user = TelegramClient(
         'sessions/user', api_id=stg.TG_API_ID,
         api_hash=stg.TG_API_HASH, base_logger='telegram',proxy=proxy)

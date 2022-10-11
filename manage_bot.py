@@ -20,7 +20,7 @@ from telethon.tl.functions.messages import ImportChatInviteRequest
 from copy import deepcopy
 from tortoise.expressions import Q
 from datetime import datetime, timedelta
-
+from proxy import get_proxy
 
 class ManageBot:
 
@@ -110,9 +110,11 @@ class ManageBot:
 
                 elif self.user_db.flow == 'sent_auth_code':
                     try:
+                        proxy = get_proxy('')
+                        stg.current_proxy = proxy
                         await stg.client_user.sign_in(
                             phone=stg.client_user_db.phone_number_entered, code=self.text[5:],
-                            phone_code_hash=stg.client_user_db.phone_code_hash)
+                            phone_code_hash=stg.client_user_db.phone_code_hash, proxy=proxy)
                         await self.you_logged_in()
 
                     except PhoneCodeExpiredError:
@@ -139,7 +141,7 @@ class ManageBot:
 
                 elif self.user_db.flow == '2FA needed':
                     try:
-                        await stg.client_user.sign_in(password=self.event.text)
+                        await stg.client_user.sign_in(password=self.event.text,proxy = stg.current_proxy)
                         await self.you_logged_in()
 
                         self.user_db.flow = None
@@ -371,7 +373,12 @@ class ManageBot:
             me = await stg.client_user.get_me()
             text = f'{me.first_name}' + (f' {me.last_name}' if me.last_name else str())
         except Exception:
-            text = 'Account not authorized'
+            try:
+                await self.reconnect_client_user()
+                me = await stg.client_user.get_me()
+                text = f'{me.first_name}' + (f' {me.last_name}' if me.last_name else str())
+            except Exception:
+                text = 'Account not authorized'
 
         _menu = deepcopy(btn.menu)
         buttons = [Button.inline(text, 'authorized_account')]
@@ -839,6 +846,14 @@ class ManageBot:
 
     async def reconnect_client_user(self):
         await stg.client_user.disconnect()
+        proxy = get_proxy('')
+        try:
+            await stg.client_user.set_proxy(proxy)
+            stg.current_proxy = proxy
+        except Exception as e:
+            stg.info_logger.error("Error connecting via set proxy..")
+            pass
+        # await manage_client.connect_user_tg()
         await stg.client_user.connect()
 
     async def system_updates(self):
